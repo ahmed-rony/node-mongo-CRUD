@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Hi! Mongo database</h1>
+    <form action="/addInfo" method="post">
+        <input type="text" name="name" placeholder="Name">
+        <input type="text" name="Identity" placeholder="Identity">
+        <input type="text" name="friend" placeholder="friend">
+        <button type="submit">Add Info</button>
+    </form>
+    <div id="infos"></div>
+    <div id="update"></div>
+
+    <script>
+        // for loading all;
+        const loadAllInfos = () =>{
+            fetch('/infos')
+            .then(res => res.json())
+            .then(infos =>{
+                // console.log(infos);
+                const container = document.getElementById('infos');
+                container.innerHTML = '';  // update korar somoy kaje lage; ta chara protibar data load hobar age container clean thakbe;
+                infos.forEach(info => {
+                    const p = document.createElement('h3');
+                    p.innerHTML = `${info.name} ~~ identity: ${info.Identity} ~~ friend: ${info.friend}
+                    <button onclick="loadInfo('${info._id}')">Update</button>
+                    <button onclick="deleteInfo(event, '${info._id}')">Delete</button>
+                    `;
+                    container.appendChild(p);  // container er moddhe die dilam;
+                });
+            })
+        }
+        loadAllInfos();
+        
+        // for updating;
+        function loadInfo(id){
+            fetch(`/singleInfo/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                const update = document.getElementById('update');
+                update.innerHTML = `
+                <h3>Update: ${data._id}</h3>
+                <h3>Name: ${data.name}</h3>
+                Name: <input type="text" value="${data.name}" id="name" />
+                <br>
+                friend: <input type="text" value="${data.friend}" id="friend" />
+                <button onclick="updateInfo('${data._id}')"> Upgrade </button>
+                `
+            })
+        }
+        const updateInfo = (id) =>{
+            // console.log('hitted');
+            const name = document.getElementById('name').value;
+            const friend = document.getElementById('friend').value;
+            const info = {id, name, friend};
+            fetch(`/update/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type' : 'application/json'},
+                body: JSON.stringify(info)
+            })
+            .then(res => res.json())
+            .then(result =>{
+                if(result){
+                    loadAllInfos();
+                    document.getElementById('update').innerHTML = '';
+                }
+            })
+        }
+
+        // for deleting;
+        const deleteInfo = (event, id) =>{
+            fetch(`/delete/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(result =>{
+                if (result) {
+                    event.target.parentNode.style.display='none'
+                }
+            })
+        }
+
+        
+        
+    </script>
+</body>
+</html>
